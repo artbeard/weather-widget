@@ -14,29 +14,19 @@
 		</template>
 
 		<div class="weater-city-list">
-			<div class="weater-city-list__item">
-				<span class="weater-city-list__item-sort-handler">
-					<SvgIcon icon="list" />
-				</span>
-				<span class="weater-city-list__item-city-label">Город1</span>
-				<Button label="Primary" class="p-button-danger p-button-sm p-button-text weater-city-list__item-controll-del"><SvgIcon icon="trash" /></Button>
-			</div>
-			<div class="weater-city-list__item">
-				<span class="weater-city-list__item-sort-handler">
-					<SvgIcon icon="list" />
-				</span>
-				<span class="weater-city-list__item-city-label">Город1</span>
-				<Button label="Primary" class="p-button-secondary p-button-sm p-button-text weater-city-list__item-controll-del"><SvgIcon icon="trash" /></Button>
-			</div>
-			<div class="weater-city-list__item">
-				<span class="weater-city-list__item-sort-handler">
-					<SvgIcon icon="list" />
-				</span>
-				<span class="weater-city-list__item-city-label">Город1</span>
-				<Button label="Primary" class="p-button-secondary p-button-sm p-button-text weater-city-list__item-controll-del"><SvgIcon icon="trash" /></Button>
-			</div>
+			<Draggable v-model="cities" item-key="id">
+				<template #item="{element}">
+					<div class="weater-city-list__item">
+						<span class="weater-city-list__item-sort-handler">
+							<SvgIcon icon="list" />
+						</span>
+						<span class="weater-city-list__item-city-label">{{element.title}}</span>
+						<Button label="Primary" class="p-button-danger p-button-sm p-button-text weater-city-list__item-controll-del"><SvgIcon icon="trash" /></Button>
+					</div>
+				</template>
+			</Draggable>
 		</div>
-		
+
 		<div class="p-inputgroup">
 			<AutoComplete
 				v-model="selectedCountry"
@@ -57,18 +47,34 @@
 import { defineComponent } from "vue";
 import InputText from 'primevue/inputtext';
 import AutoComplete from 'primevue/autocomplete';
+import Draggable from 'vuedraggable'
 import { WStatus } from "@/use/types";
 export default defineComponent({
 	name: "WeatherConfig",
 	components: {
 		InputText,
-		AutoComplete
+		AutoComplete,
+		Draggable
 	},
 	emits:['toggleMode'],
 	data() {
 		return {
 			selectedCountry: null,
-			filteredCountries: null
+			filteredCountries: null,
+			cities:[
+				{
+					id: 1,
+					title: 'London' 	
+				},
+				{
+					id: 2,
+					title: 'Moscow'	
+				},
+				{
+					id: 3,
+					title: 'Omsk'
+				},
+			],
 		}
 	},
 	countryService: null,

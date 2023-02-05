@@ -10,7 +10,8 @@
     "core-js": "^3.8.3",
     "pinia": "^2.0.30",
     "primevue": "^3.23.0",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
