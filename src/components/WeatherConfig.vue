@@ -5,10 +5,10 @@
 		</template>
 		
 		<template #icons>
-			<button class="p-panel-header-icon p-link mr-2" _click="toggle">
+			<button class="p-panel-header-icon p-link mr-2" @click="toggleToWeather">
 				<SvgIcon icon="check-lg" />
 			</button>
-			<button class="p-panel-header-icon p-link mr-2" _click="toggle">
+			<button class="p-panel-header-icon p-link mr-2" @click="toggleToWeather">
 				<SvgIcon icon="x-lg" />
 			</button>
 		</template>
@@ -57,13 +57,14 @@
 import { defineComponent } from "vue";
 import InputText from 'primevue/inputtext';
 import AutoComplete from 'primevue/autocomplete';
+import { WStatus } from "@/use/types";
 export default defineComponent({
 	name: "WeatherConfig",
 	components: {
 		InputText,
 		AutoComplete
 	},
-
+	emits:['toggleMode'],
 	data() {
 		return {
 			selectedCountry: null,
@@ -77,6 +78,10 @@ export default defineComponent({
 	methods: {
 		searchCountry(event: any) {
             //this.filteredCountriesBasic = this.countryService.search(event.query);
+		},
+		toggleToWeather()
+		{
+			this.$emit('toggleMode', WStatus.weaher);	
 		}
 	}
 
