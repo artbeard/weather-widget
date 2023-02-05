@@ -1,6 +1,6 @@
 <template>
 	<div class="weather-widget">
-		<WeatherBoard />
+		<component :is="getElement" @toggle-mode="toggleMode"></component>
 	</div>
 </template>
 
@@ -10,13 +10,27 @@ import 'primevue/resources/primevue.min.css';
 import { defineComponent } from "vue";
 import WeatherConfig from "./components/WeatherConfig.vue";
 import WeatherBoard from './components/WeatherBoard.vue';
-import Button from 'primevue/button';
+import { WStatus } from './use/types'
 export default defineComponent({
 	name: "App",
 	components: {
 		WeatherConfig,
 		WeatherBoard,
-		Button
+	},
+	data: ()=>({
+		mode: WStatus.config
+	}),
+	computed:{
+		getElement()
+		{
+			return this.mode === WStatus.config ? WeatherConfig : WeatherBoard;
+		}
+	},
+	methods:{
+		toggleMode(mode: WStatus)
+		{
+			this.mode = mode;
+		}
 	},
 });
 </script>
