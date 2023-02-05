@@ -1,7 +1,7 @@
 <template>
 	<Panel>
 		<template #header>
-			Widget Configure
+			Widget Configuration
 		</template>
 		
 		<template #icons>
