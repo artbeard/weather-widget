@@ -52,24 +52,6 @@ export default defineComponent({
 		border-color: #2196F3 !important;
 	}
 
-	@keyframes spinner-border {
-		to { transform: rotate(360deg) #{"/* rtl:ignore */"}; }
-	}
-	.weather-spinner{
-		display: inline-block;
-		width: 2rem;
-		height: 2rem;
-		vertical-align: -0.125em;
-		border: 0.25em solid currentColor;
-		border-right-color: transparent;
-		border-radius: 50%;
-		-webkit-animation: .75s linear infinite spinner-border;
-		animation: .75s linear infinite spinner-border;
-		width: 1rem;
-		height: 1rem;
-		border-width: 0.2em;
-	}
-
 	.p-panel{
 		.p-panel-header{
 			padding: 0.5rem 1rem !important;
