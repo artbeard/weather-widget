@@ -1,21 +1,24 @@
 <template>
-	<Panel class="weater-no-border weather-mb weather-mb-content" v-for="(city, index) in cities" :key="city">
+	<Panel class="weater-no-border weather-mb weather-mb-content"
+		v-for="(location, index) in locations"
+		:key="location.name"
+		>
 		<template #header>
-			<b>{{city}}</b>
+			<b>{{location.name}}</b>
 		</template>
 		<template #icons v-if="index == 0">
 			<button class="p-panel-header-icon p-link mr-2" @click="toggleToConfig">
 				<SvgIcon icon="gear" />
 			</button>
 		</template>
-		<WeatherCity />
+		<WeatherCity :weather-location="location" />
 	</Panel>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import WeatherCity from './WeatherCity.vue';
-import { WStatus } from '@/use/types';
+import { WStatus, ILocation } from "@/use/types";
 export default defineComponent({
 	name: 'WeatherBoard',
 	components: {
@@ -23,16 +26,18 @@ export default defineComponent({
 	},
 	emits:['toggleMode'],
 	data: ()=>({
-		cities: [
-			'London',
-			'Moscow'
-		]
+		locations: [] as ILocation[],
 	}),
 	methods:{
 		toggleToConfig()
 		{
 			this.$emit('toggleMode', WStatus.config);	
 		}
-	}
+	},
+	created() {
+		this.locations = JSON.parse(
+			localStorage.getItem('WeatherWidget_locationList') ?? '[]'
+		);
+	},
 })
 </script>
