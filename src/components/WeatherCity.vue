@@ -1,10 +1,15 @@
 <template>
+	<div v-if="waitForWeaterData">
+		<SvgIcon /><br />
+		Loading weather data
+	</div>
+
 	<div class="weater-city-block">
 		<div class="weater-city-block__condition">
 			<div class="weater-city-block__condition-img">
 				<img :src="getWeaterIcon" />
 			</div>
-			<div class="weater-city-block__condition-temperaure">{{ weaterParams.temp ?? 'no data' }} &#176C</div>
+			<div class="weater-city-block__condition-temperaure">{{ weaterParams.temp ?? 'no data' }} &deg;C</div>
 		</div>
 		<p class="weater-city-block__description">{{ getCondition }}</p>
 		<div class="weater-city-block__forecast">
@@ -33,10 +38,10 @@
 			</div>
 			<div class="weater-city-block__forecast-item">
 				<b>
-					<SvgIcon icon="half-drop" />&#176
+					<SvgIcon icon="half-drop" />&deg;
 				</b>
 				<span>
-					{{ dewPoint }} &#176C
+					{{ dewPoint }} &deg;C
 				</span>
 			</div>
 		</div>
@@ -64,6 +69,8 @@ export default defineComponent({
 		wind: {} as IWeatherWind | undefined,
 		/** Видимость */
 		visibility: 0,
+
+		waitForWeaterData: true,
 	}),
 	inject:['apiKey'],
 	mixins: [CurrentLocationMixnin],
@@ -84,7 +91,7 @@ export default defineComponent({
 					})
 					.join('. ');
 			}
-			return 'no data';
+			return '...';
 		},
 		/**
 		 * Иконка облачности 
@@ -110,9 +117,6 @@ export default defineComponent({
 			return Math.floor(dp);
 		},
 		
-		saveFromCache()
-		{
-		}
 	},
 	methods: {
 		/**
@@ -156,6 +160,8 @@ export default defineComponent({
 			this.conditions = data.weather;
 			this.wind = data?.wind;
 			this.visibility = data?.visibility ?? 0;
+
+			this.waitForWeaterData = false;
 		}
 	},
 	mounted() {
