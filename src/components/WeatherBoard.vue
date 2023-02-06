@@ -38,6 +38,10 @@ export default defineComponent({
 		this.locations = JSON.parse(
 			localStorage.getItem('WeatherWidget_locationList') ?? '[]'
 		);
+		if (this.locations.length == 0)
+		{
+			this.toggleToConfig();
+		}
 	},
 })
 </script>
