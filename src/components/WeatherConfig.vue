@@ -13,6 +13,11 @@
 			</button>
 		</template>
 
+		<div v-if="waitForLocation">
+			<SvgIcon /><br />
+			We are looking for your location. Allow access in the browser or find your location yourself.
+		</div>
+		
 		<div class="weater-city-list">
 			<Draggable v-model="locations" item-key="id">
 				<template #item="{element}">
@@ -48,17 +53,18 @@
 <script lang="ts">
 import { defineComponent, toRaw } from "vue";
 import CurrentLocationMixnin from '../mixins/CurrentLocation'
-import InputText from 'primevue/inputtext';
 import AutoComplete from 'primevue/autocomplete';
+import Message from 'primevue/message';
+
 import Draggable from 'vuedraggable'
 import { WStatus, ILocation, ISearchLocation, ISelectedLocation } from "@/use/types";
-import { searchLocation } from "@/use/urlsapi";
+import { searchLocation, searchLocationByCoords } from "@/use/urlsapi";
 export default defineComponent({
 	name: "WeatherConfig",
 	components: {
-		InputText,
 		AutoComplete,
-		Draggable
+		Draggable,
+		Message
 	},
 	emits: ['toggleMode'],
 	inject: ['apiKey'],
@@ -68,6 +74,27 @@ export default defineComponent({
 			selectedLocation: null,
 			locations: [] as ILocation[],
 			findedLocation: [] as ISelectedLocation[],
+
+			waitForLocation: true,
+		}
+	},
+	watch:{
+		/**
+		 * Скрываем сообщение об автоматическом поиске места
+		 */
+		locations:{
+			handler(newVal: ILocation[])
+			{
+				if (newVal.length > 0)
+				{
+					this.waitForLocation = false;
+				}
+				else
+				{
+					this.waitForLocation = true;
+				}
+			},
+			deep: true
 		}
 	},
 	methods: {
@@ -80,28 +107,23 @@ export default defineComponent({
 			.then((data: ISearchLocation[])  => {
 				//Преобразуем формат //Todo вынести в хелперы
 				this.findedLocation = data.map((el: ISearchLocation): ISelectedLocation => {
-					let location: ILocation = {
-						name: el.name,
-						lat: el.lat,
-						lon: el.lon,
-						country: el.country,
-					};
-					let localeTtle: string = `${el.country}`;
+					let location: ILocation = this.createLocation(el);
+					let localeTitle: string = `${el.country}`;
 					if (el?.local_names && el.local_names[this.currentLocale])
 					{
-						localeTtle += ` ${el.local_names[this.currentLocale]}`;
+						localeTitle += ` ${el.local_names[this.currentLocale]}`;
 						location.name = el.local_names[this.currentLocale];
 					}
 					else
 					{
-						localeTtle += ` ${el.name}`
+						localeTitle += ` ${el.name}`
 					}
 					if (el?.state)
 					{
-						localeTtle += ` (${el?.state})`
+						localeTitle += ` (${el?.state})`
 					}
 					return {
-						title: localeTtle,
+						title: localeTitle,
 						location: location 
 					}
 				});
@@ -111,12 +133,30 @@ export default defineComponent({
 				this.findedLocation = [];
 			});
 		},
+		
+		/**
+		 * Преобразует найденное местоположение в объект ILocation
+		 * @param data ISearchLocation
+		 */
+		createLocation(data: ISearchLocation): ILocation
+		{
+			return {
+				name: data.name,
+				lat: data.lat,
+				lon: data.lon,
+				country: data.country,
+			}
+		},
+		/**
+		 * Выбор локации из выпадающего списка
+		 */
 		locationSelected(event: any)
 		{
 			this.locations.push(event?.value?.location); //Добавление локации в список
 			this.selectedLocation = null;
 			this.findedLocation = [];
 		},
+		
 		deleteLocation(element: ILocation)
 		{
 			this.locations = this.locations.filter(el => {
@@ -140,6 +180,41 @@ export default defineComponent({
 		this.locations = JSON.parse(
 			localStorage.getItem('WeatherWidget_locationList') ?? '[]'
 		);
+		if (this.locations.length == 0)
+		{
+			if (navigator.geolocation)
+			{
+				navigator.geolocation.getCurrentPosition((pos) => {
+						let crd = pos.coords;
+						fetch(searchLocationByCoords
+								.replace(':lat', String(crd?.latitude) )
+								.replace(':lon', String(crd?.longitude))
+								.replace(':apiKey', this.apiKey as string)
+							)
+							.then(res => res.json())
+							.then((data: ISearchLocation[]) => {
+								if (data.length > 0)
+								{
+									//Преобазуем и выбираем первую найденную локацию
+									let location: ILocation = this.createLocation(data[0]);
+									this.locations.push(location);
+								}
+							})
+							.catch((err: any) => {
+								console.log(err);
+							})
+					},
+					(err) => {
+						console.warn(`ERROR(${err.code}): ${err.message}`);
+					},
+					{
+						enableHighAccuracy: true,
+						timeout: 5000,
+						maximumAge: 0
+					});
+			}
+				
+		}
 	},
 
 });
