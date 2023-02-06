@@ -10,6 +10,7 @@
     "core-js": "^3.8.3",
     "pinia": "^2.0.30",
     "primevue": "^3.23.0",
+    "typescript-cookie": "^1.0.4",
     "vue": "^3.2.13",
     "vuedraggable": "^4.1.0"
   },
