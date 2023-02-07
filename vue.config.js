@@ -1,6 +1,7 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
 	transpileDependencies: true,
+	/*
 	productionSourceMap: false,
 	filenameHashing: false,
 	integrity: true,
@@ -12,4 +13,5 @@ module.exports = defineConfig({
 		  splitChunks: false,
 		},
 	},
+	*/
 })
