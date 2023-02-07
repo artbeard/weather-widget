@@ -1,15 +1,15 @@
 <template>
-	<div v-if="waitForWeaterData">
+	<div class="weater-notice" v-if="waitForWeaterData">
 		<SvgIcon /><br />
 		Loading weather data
 	</div>
 
-	<div class="weater-city-block">
+	<div class="weater-city-block" v-else>
 		<div class="weater-city-block__condition">
 			<div class="weater-city-block__condition-img">
 				<img :src="getWeaterIcon" />
 			</div>
-			<div class="weater-city-block__condition-temperaure">{{ weaterParams.temp ?? 'no data' }} &deg;C</div>
+			<div class="weater-city-block__condition-temperaure">{{ weaterParams.temp ?? '...' }} &deg;C</div>
 		</div>
 		<p class="weater-city-block__description">{{ getCondition }}</p>
 		<div class="weater-city-block__forecast">
@@ -17,14 +17,14 @@
 				<b>
 					<SvgIcon icon="dashboard" />
 				</b>
-				{{ weaterParams.pressure ?? 'no data' }} Pa
+				{{ weaterParams.pressure ?? '...' }} Pa
 			</div>
 			<div class="weater-city-block__forecast-item">
 				<b>
 					<SvgIcon icon="drop" />
 				</b>
 				<span>
-					{{ weaterParams.humidity ?? 'no data' }} %
+					{{ weaterParams.humidity ?? '...' }} %
 				</span>
 			</div>
 			<div class="weater-city-block__forecast-item">
@@ -70,7 +70,7 @@ export default defineComponent({
 		/** Видимость */
 		visibility: 0,
 
-		waitForWeaterData: true,
+		waitForWeaterData: true, //анимация загрузки данных
 	}),
 	inject:['apiKey'],
 	mixins: [CurrentLocationMixnin],
@@ -142,7 +142,11 @@ export default defineComponent({
 				)
 					.then(resp => resp.json())
 					.then((data: IWeatherAnswer) => {
-						setCookie(`WeatherWidget${location.lat}${location.lon}`, JSON.stringify(data), {expires: (1/24)/4})
+						setCookie(
+							`WeatherWidget${location.lat}${location.lon}`,
+							JSON.stringify(data),
+							{expires: (1/24)/4} //Время хранения кеша 15 минут
+						)
 						this.parceData(data);
 					})
 					.catch(err => {
