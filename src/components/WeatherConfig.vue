@@ -13,10 +13,6 @@
 			</button>
 		</template>
 
-		<div v-if="waitForLocation">
-			<SvgIcon /><br />
-			We are looking for your location. Allow access in the browser or find your location yourself.
-		</div>
 		
 		<div class="weater-city-list">
 			<Draggable v-model="locations" item-key="id">
@@ -34,6 +30,10 @@
 				</template>
 			</Draggable>
 		</div>
+		
+		<Message :severity="message.type" :closable="false" v-if="message.text" >
+			<SvgIcon v-if="waitRequestAnimation" />	{{ message.text }}
+		</Message>
 
 		<div class="p-inputgroup">
 			<AutoComplete
@@ -54,8 +54,7 @@
 import { defineComponent, toRaw } from "vue";
 import CurrentLocationMixnin from '../mixins/CurrentLocation'
 import AutoComplete from 'primevue/autocomplete';
-import Message from 'primevue/message';
-
+import Message from "primevue/message";
 import Draggable from 'vuedraggable'
 import { WStatus, ILocation, ISearchLocation, ISelectedLocation } from "@/use/types";
 import { searchLocation, searchLocationByCoords } from "@/use/urlsapi";
@@ -64,39 +63,26 @@ export default defineComponent({
 	components: {
 		AutoComplete,
 		Draggable,
-		Message
+		Message,
 	},
 	emits: ['toggleMode'],
 	inject: ['apiKey'],
 	mixins: [CurrentLocationMixnin],
 	data() {
 		return {
-			selectedLocation: null,
-			locations: [] as ILocation[],
-			findedLocation: [] as ISelectedLocation[],
+			selectedLocation: null, //v-model окна поиска
+			locations: [] as ILocation[], //Список локаций в которых будем отображать погоду
+			findedLocation: [] as ISelectedLocation[], //массив для выбора при поиске
 
-			waitForLocation: true,
-		}
-	},
-	watch:{
-		/**
-		 * Скрываем сообщение об автоматическом поиске места
-		 */
-		locations:{
-			handler(newVal: ILocation[])
-			{
-				if (newVal.length > 0)
-				{
-					this.waitForLocation = false;
-				}
-				else
-				{
-					this.waitForLocation = true;
-				}
+			waitRequestAnimation: false, //Анимация
+			//Объект сообщения
+			message:{
+				type: 'error' as 'error' | 'info',
+				text: null as string | null,
 			},
-			deep: true
 		}
 	},
+
 	methods: {
 		searchLocation(event: any) {
 			let query: string = event?.query;
@@ -105,9 +91,12 @@ export default defineComponent({
 			})
 			.then(resp => resp.json())
 			.then((data: ISearchLocation[])  => {
-				//Преобразуем формат //Todo вынести в хелперы
+				//Преобразуем формат
 				this.findedLocation = data.map((el: ISearchLocation): ISelectedLocation => {
 					let location: ILocation = this.createLocation(el);
+					//Формируем из найденных вариантов локаций
+					//объекты для отображения с списке выбора
+					//с учетом локали браузера
 					let localeTitle: string = `${el.country}`;
 					if (el?.local_names && el.local_names[this.currentLocale])
 					{
@@ -153,6 +142,7 @@ export default defineComponent({
 		locationSelected(event: any)
 		{
 			this.locations.push(event?.value?.location); //Добавление локации в список
+			this.checkForEmptyList();
 			this.selectedLocation = null;
 			this.findedLocation = [];
 		},
@@ -162,11 +152,29 @@ export default defineComponent({
 			this.locations = this.locations.filter(el => {
 				return (el.lat !== element.lat && el.lon !== element.lon)
 			})
+			this.checkForEmptyList();
 		},
 		saveConfig()
 		{
 			localStorage.setItem('WeatherWidget_locationList', JSON.stringify(toRaw(this.locations)));
 			this.toggleToWeather();	
+		},
+		/**
+		 * Выводим/скрываем сообщение о необходимости добавить хотя бы одну локацию
+		 */
+		checkForEmptyList()
+		{
+			if (this.locations.length == 0)
+			{
+				this.message = {
+					type: 'info',
+					text: 'Add at least one location to display the weather'
+				};
+			}
+			else
+			{
+				this.message.text = null;
+			}
 		},
 
 		toggleToWeather()
@@ -175,15 +183,20 @@ export default defineComponent({
 		}
 	},
 
-	
 	created() {
 		this.locations = JSON.parse(
 			localStorage.getItem('WeatherWidget_locationList') ?? '[]'
 		);
-		if (this.locations.length == 0)
+		//Если пользователь еще никогда не настраивал виджет, инициируем автоприск локации
+		if (localStorage.getItem('WeatherWidget_locationList') === null)
 		{
 			if (navigator.geolocation)
 			{
+				this.waitRequestAnimation = true;
+				this.message = {
+					type: 'info',
+					text: 'We are looking for your location. Allow access in the browser or find your location yourself.'
+				};
 				navigator.geolocation.getCurrentPosition((pos) => {
 						let crd = pos.coords;
 						fetch(searchLocationByCoords
@@ -193,19 +206,33 @@ export default defineComponent({
 							)
 							.then(res => res.json())
 							.then((data: ISearchLocation[]) => {
-								if (data.length > 0)
+								//Нашли локацию
+								if (data.length)
 								{
 									//Преобазуем и выбираем первую найденную локацию
 									let location: ILocation = this.createLocation(data[0]);
 									this.locations.push(location);
+									this.checkForEmptyList();
 								}
 							})
 							.catch((err: any) => {
-								console.log(err);
+								//Запросить локацию с данными координатами не удалось
+								this.message = {
+									type: 'error',
+									text: 'We were unable to determine your location. Try to do it yourself.'
+								};
 							})
+							.finally(() => {
+								this.waitRequestAnimation = false;
+							});
 					},
+					//Определить координаты не удалось
 					(err) => {
-						console.warn(`ERROR(${err.code}): ${err.message}`);
+						this.waitRequestAnimation = false;
+						this.message = {
+							type: 'error',
+							text: err.message
+						};
 					},
 					{
 						enableHighAccuracy: true,
@@ -213,8 +240,20 @@ export default defineComponent({
 						maximumAge: 0
 					});
 			}
-				
+			else
+			{
+				this.waitRequestAnimation = false;
+				this.message = {
+					type: 'info',
+					text: 'Automatic location detection is not possible. Find your desired location yourself.'
+				};
+			}
 		}
+		else
+		{
+			this.checkForEmptyList();
+		}
+
 	},
 
 });
