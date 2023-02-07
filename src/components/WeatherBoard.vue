@@ -34,12 +34,13 @@ export default defineComponent({
 			this.$emit('toggleMode', WStatus.config);	
 		}
 	},
-	created() {
+	mounted() {
 		this.locations = JSON.parse(
 			localStorage.getItem('WeatherWidget_locationList') ?? '[]'
 		);
+		//Если виджет не настроен, переходим в настройки
 		if (this.locations.length == 0)
-		{
+		{	
 			this.toggleToConfig();
 		}
 	},
