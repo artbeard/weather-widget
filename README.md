@@ -1,19 +1,18 @@
-# test-task2
+# weather widget
 
-## Project setup
+## Постановка задачи
+Реализовать виджет, интегрирующийся в сторонний сайт путем включения подобного кода:
+```html
+<weather-widget />
+<script type="text/javascript" src="{URL to the app}"></script>
 ```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Реализация
+Для реализции такого подхода создается вебкомпонент, в него инжектится приложение написанное на Vue.
+Поскольку доподлинно неизвестно, какие CSS фреймворки могут быть использованы в приложении-хосте, для минимизации вероятности конфликтов, CSS фреймворки в виджете не применялись.
+Приложение реализовано на фреймворке Vue 3 с использованием компонентов библиотеки PrimeVue.
+Для работы приложения необходимо зарегистрироваться на сайте openweathermap.org, получить Api Key и указать его в data-api-key аттрибуте:
+```html
+<weather-widget data-api-key="{Your Api Key}"></weather-widget>
+``` 
+Запросы к поставщику погодных данных выполняются не чаще одного раза в 15 минут. Кеширование погодных данных реализовано с помощью cookies.
+Данные о выбранных локациях хранятся в localStorage, при первом подключении виджет автоматически пытается определить координаты при помощи Geolocation API.
