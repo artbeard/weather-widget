@@ -1,5 +1,9 @@
 <template>
 	<div class="weather-widget">
+		<div class="weater-notice weater-notice-error" v-if="getApiKey === null">
+			API key not installed.<br>
+			Get your key from openweathermap.org
+		</div>
 		<component :is="getElement" @toggle-mode="toggleMode"></component>
 	</div>
 </template>
@@ -20,10 +24,15 @@ export default defineComponent({
 	data: ()=>({
 		mode: WStatus.weaher
 	}),
+	inject: ['apiKey'],
 	computed:{
 		getElement()
 		{
 			return this.mode === WStatus.config ? WeatherConfig : WeatherBoard;
+		},
+		getApiKey()
+		{
+			return this.apiKey;
 		}
 	},
 	methods:{
@@ -187,7 +196,7 @@ export default defineComponent({
 		text-align: center;
 		padding: 1rem 0.5rem;
 	}
-	.weater-notice .weater-notice-error{
+	.weater-notice.weater-notice-error{
 		color: red;
 	}
 }
