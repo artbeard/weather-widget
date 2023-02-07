@@ -18,7 +18,7 @@ export default defineComponent({
 		WeatherBoard,
 	},
 	data: ()=>({
-		mode: WStatus.config
+		mode: WStatus.weaher
 	}),
 	computed:{
 		getElement()
@@ -150,6 +150,10 @@ export default defineComponent({
 				align-items: center;
 				justify-content: center;
 				width: 50%;
+			}
+			.weater-city-block__condition-img img{
+				width: 100px;
+				height: 100px;
 			}
 			.weater-city-block__condition-temperaure{
 				font-size: 2rem;
