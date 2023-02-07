@@ -12,6 +12,9 @@ export interface ILocation{
 	lon: number,
 	country: string,
 }
+/**
+ * ИНтерфейс ответа при поиске
+ */
 export interface ISearchLocation{
 	name: string,
 	lat: number,
@@ -26,7 +29,9 @@ export interface ISelectedLocation{
 	title: string,
 	location: ILocation
 }
-
+/**
+ * Интерфейсы погодных данных
+ */
 export interface IWeatherParams{
 	temp: number, //температура
 	feels_like: number, //Температура по ощущениям
